@@ -1,0 +1,3 @@
+Robot favicon by OpenMoji: https://openmoji.org/library/emoji-1F916/
+CC BY-SA 4.0: https://creativecommons.org/licenses/by-sa/4.0/
+Modification: cropped SVG viewBox to reduce transparent margins.
