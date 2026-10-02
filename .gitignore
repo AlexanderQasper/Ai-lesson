@@ -22,3 +22,8 @@ app/assets/editor-demo.html
 INVENTORY.md
 CLEANUP-PLAN.md
 Caddyfile.proposed
+
+# Local transcription tokens, models and transcripts
+.asr.env
+.asr-cache/
+asr-results/
