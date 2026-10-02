@@ -1,0 +1,24 @@
+.env
+__pycache__/
+*.pyc
+
+# Private settings and runtime files
+.env.*
+!.env.example
+*.log
+*-backup/
+backups/
+__pycache__/
+*.pyc
+/data/
+materials/
+*.part
+*.bak
+# Synthetic browser demo
+app/assets/demo.mp3
+app/assets/demo.json
+app/assets/editor-demo.html
+# Server inventory and deployment notes
+INVENTORY.md
+CLEANUP-PLAN.md
+Caddyfile.proposed

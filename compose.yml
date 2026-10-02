@@ -1,0 +1,67 @@
+name: lesson-ai
+x-app: &app
+  build: .
+  env_file: .env
+  restart: unless-stopped
+  volumes: [materials:/data]
+  networks: [private, outbound]
+  depends_on:
+    postgres: {condition: service_healthy}
+    redis: {condition: service_healthy}
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  logging:
+    driver: json-file
+    options: {max-size: 10m, max-file: '3'}
+services:
+  backend:
+    <<: *app
+    command: [uvicorn, app.main:app, --host, 0.0.0.0, --port, '8000']
+    ports: ['127.0.0.1:8091:8000']
+    mem_limit: 512m
+    cpus: 0.5
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8000/healthz", timeout=3)']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  worker:
+    <<: *app
+    command: [rq, worker, --url, redis://redis:6379/0, lessons]
+    mem_limit: 1g
+    cpus: 1.0
+    stop_grace_period: 2m
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lessonai
+      POSTGRES_DB: lessonai
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    networks: [private]
+    mem_limit: 512m
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U lessonai -d lessonai']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: [redis-server, --appendonly, 'yes', --maxmemory, 128mb, --maxmemory-policy, noeviction]
+    volumes: [redis_data:/data]
+    networks: [private]
+    mem_limit: 256m
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+networks:
+  private: {internal: true}
+  outbound: {}
+volumes:
+  postgres_data: {}
+  redis_data: {}
+  materials: {}
