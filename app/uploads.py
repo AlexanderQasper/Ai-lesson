@@ -39,7 +39,7 @@ def initialize():
 def account_page(request,user,error=None,status=200):
     from app.main import db,page
     with db() as conn:
-        rows=conn.execute("SELECT * FROM audio_recordings WHERE user_id=%s ORDER BY created_at DESC",(user["id"],)).fetchall()
+        rows=conn.execute("SELECT a.*, (SELECT count(*) FROM recording_transcripts t WHERE t.recording_id=a.id) AS transcript_count FROM audio_recordings a WHERE a.user_id=%s ORDER BY a.created_at DESC",(user["id"],)).fetchall()
     used=sum(x["size_bytes"]+x.get("trim_size",0) for x in rows)
     for row in rows:
         secs=round(row["trim_duration"] or row["duration_seconds"])

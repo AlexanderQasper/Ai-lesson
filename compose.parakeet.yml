@@ -1,0 +1,5 @@
+services:
+  asr-test:
+    build:
+      context: ./asr/parakeet
+      dockerfile: Dockerfile

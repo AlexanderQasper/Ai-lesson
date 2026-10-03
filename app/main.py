@@ -39,6 +39,8 @@ async def lifespan(app):
     initialize()
     from app.trimming import initialize as initialize_trimming
     initialize_trimming()
+    from app.teacher import initialize as initialize_teacher
+    initialize_teacher()
     yield
 
 app = FastAPI(title="Lesson AI", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
@@ -146,3 +148,6 @@ from fastapi.staticfiles import StaticFiles
 app.mount("/assets/editor",StaticFiles(directory=str(Path(__file__).parent / "assets")),name="editor-assets")
 
 from fastapi.staticfiles import StaticFiles
+
+from app.teacher import install as install_teacher
+install_teacher(app)

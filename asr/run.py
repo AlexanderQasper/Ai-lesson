@@ -39,6 +39,7 @@ def main():
         model=whisperx.load_model(args.model,'cpu',compute_type='int8',language=args.language,vad_method='silero',threads=2,download_root='/cache/whisper')
         result=model.transcribe(audio,batch_size=1); stages['transcription_seconds']=time.monotonic()-t
         del model; gc.collect(); language=result['language']; aligned=False
+        Path(os.environ.get('NLTK_DATA','/cache/nltk_data')).mkdir(parents=True,exist_ok=True)
         print('Aligning words…',flush=True); t=time.monotonic()
         try:
             align,metadata=whisperx.load_align_model(language_code=language,device='cpu',model_dir='/cache/alignment')
@@ -46,7 +47,7 @@ def main():
             del align; gc.collect(); aligned=True
         except Exception as exc:
             warnings.append('Word alignment unavailable: '+type(exc).__name__)
-            print('Alignment unavailable; keeping segment timestamps.',flush=True)
+            print('Alignment unavailable:',str(exc),'— keeping segment timestamps.',flush=True)
         stages['alignment_seconds']=time.monotonic()-t
         print('Separating speakers…',flush=True); t=time.monotonic()
         from whisperx.diarize import DiarizationPipeline

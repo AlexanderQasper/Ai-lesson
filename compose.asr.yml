@@ -3,6 +3,9 @@ services:
     profiles: [asr]
     build: ./asr
     env_file: .asr.env
+    environment:
+      NLTK_DATA: /cache/nltk_data
+      MPLCONFIGDIR: /cache/matplotlib
     volumes:
       - materials:/data:ro
       - ./.asr-cache:/cache
