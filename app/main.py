@@ -82,7 +82,7 @@ def index(request: Request):
 
 @app.get("/login")
 def login(request: Request):
-    if current_user(request): return RedirectResponse("/account",303)
+    if current_user(request): return RedirectResponse("/teacher/prepare",303)
     return page(request,"login",error=request.query_params.get("error"))
 
 @app.get("/auth/google")
@@ -115,7 +115,7 @@ async def google_callback(request: Request):
         if old: conn.execute("DELETE FROM sessions WHERE token_hash=%s",(digest(old),))
         conn.execute("DELETE FROM sessions WHERE expires_at<=now()")
         conn.execute("INSERT INTO sessions(token_hash,user_id,csrf,expires_at) VALUES(%s,%s,%s,now()+interval '7 days')",(digest(session),user["id"],secrets.token_urlsafe(32)))
-    response=RedirectResponse("/account",303)
+    response=RedirectResponse("/teacher/prepare",303)
     response.set_cookie(COOKIE,session,max_age=604800,secure=True,httponly=True,samesite="lax",path="/")
     return response
 
@@ -153,4 +153,3 @@ from app.assistant import install as install_assistant
 install_assistant(app)
 from app.teacher import install as install_teacher
 install_teacher(app)
-
