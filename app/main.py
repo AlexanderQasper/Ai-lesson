@@ -149,5 +149,8 @@ app.mount("/assets/editor",StaticFiles(directory=str(Path(__file__).parent / "as
 
 from fastapi.staticfiles import StaticFiles
 
+from app.assistant import install as install_assistant
+install_assistant(app)
 from app.teacher import install as install_teacher
 install_teacher(app)
+
