@@ -1,6 +1,6 @@
 """Minimal private material editor, with no external AI calls."""
 from fastapi import Request,HTTPException,Form
-from fastapi.responses import RedirectResponse,Response
+from fastapi.responses import RedirectResponse,Response,JSONResponse
 
 def install(app):
     from app.main import page,current_user,db
@@ -11,11 +11,17 @@ def install(app):
         if not row: raise HTTPException(404,'Материал не найден')
         return row
     @app.get('/teacher/prepare')
-    def prepare(request:Request,edit:int=0):
+    def prepare(request:Request,edit:int=0,mode:str='builder'):
         u=current_user(request)
         if not u: return RedirectResponse('/login',303)
         editing=owned(edit,u) if edit else None
-        return page(request,'assistant',user=u,page_title='Подготовка урока',editing=editing,form_error='')
+        return page(request,'assistant',user=u,page_title='Подготовка урока',editing=editing,form_error='',manual=bool(edit) or mode=='manual')
+    @app.post('/teacher/prepare/build')
+    def build(request:Request,csrf:str=Form(...),topic:str=Form(...),goal:str=Form(...),prior:str=Form('partial'),minutes:int=Form(45)):
+        auth(request,csrf)
+        from app.lesson_builder import make_plan
+        try: return JSONResponse(make_plan(topic.strip(),goal,prior,minutes))
+        except ValueError as exc: return JSONResponse({'error':str(exc)},status_code=400)
     @app.post('/teacher/prepare/save')
     def save(request:Request,csrf:str=Form(...),content:str=Form(...),title:str=Form(''),subject:str=Form(''),grade:str=Form(''),identifier:int=Form(0)):
         u=auth(request,csrf)
@@ -35,7 +41,7 @@ def install(app):
                 else:
                     c.execute("INSERT INTO teacher_materials(user_id,kind,title,content,subject,grade) VALUES(%s,'task',%s,%s,%s,%s)",(u['id'],title,content,subject,grade))
         if error:
-            response=page(request,'assistant',user=u,page_title='Подготовка урока',editing=dict(id=identifier,title=title,content=content,subject=subject,grade=grade),form_error=error)
+            response=page(request,'assistant',user=u,page_title='Подготовка урока',editing=dict(id=identifier,title=title,content=content,subject=subject,grade=grade),form_error=error,manual=True)
             response.status_code=400
             return response
         return RedirectResponse('/teacher/materials?saved=1',303)
