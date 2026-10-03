@@ -1,0 +1,1 @@
+document.querySelectorAll('[data-material-save]').forEach(form => { form.addEventListener('submit', () => { const button=form.querySelector('button[type="submit"]'); button.disabled=true; button.textContent='Сохраняем…'; form.querySelector('[data-save-status]').textContent='Сохраняем материал'; }); });

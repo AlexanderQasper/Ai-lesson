@@ -86,7 +86,7 @@ def install(app):
         if request.url.path.startswith('/teacher/') and exc.status_code in (400,413):
             u=current_user(request)
             if u:
-                section='bank' if request.url.path.startswith('/teacher/bank') or request.query_params.get('tab')=='bank' else 'courses'
+                section='bank' if request.url.path.startswith('/teacher/bank') or (request.url.path=='/teacher/materials' and request.query_params.get('tab','bank')=='bank') else 'courses'
                 table='teacher_materials' if section=='bank' else 'teacher_courses'
                 with db() as c: items=c.execute(f'SELECT * FROM {table} WHERE user_id=%s ORDER BY updated_at DESC',(u['id'],)).fetchall()
                 response=page(request,'workspace',user=u,section=section,items=items,editing=None,q='',kind='',saved=False,library_error=str(exc.detail))
@@ -110,8 +110,9 @@ def install(app):
         return Response(text,media_type='text/plain; charset=utf-8',headers={'Content-Disposition':'attachment; filename="transcript.txt"'})
     @app.get('/teacher/{section}')
     @app.get('/teacher/materials')
-    def library(request:Request,section:str='courses',q:str='',kind:str='',edit:int=0,tab:str='courses'):
+    def library(request:Request,section:str='courses',q:str='',kind:str='',edit:int=0,tab:str='bank'):
         if request.url.path=='/teacher/materials': section=tab
+        if section=='bank' and edit: return RedirectResponse('/teacher/prepare?edit='+str(edit),303)
         u=auth(request)
         if section not in ('courses','bank'): raise HTTPException(404)
         if len(q)>150: raise HTTPException(400)
