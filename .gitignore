@@ -27,3 +27,4 @@ Caddyfile.proposed
 .asr.env
 .asr-cache/
 asr-results/
+/library/methodist/

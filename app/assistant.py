@@ -5,6 +5,8 @@ from fastapi.responses import RedirectResponse,Response,JSONResponse
 def install(app):
     from app.main import page,current_user,db
     from app.teacher import auth
+    from app.methodist_ai import install as install_methodist,enabled
+    install_methodist(app)
     def owned(identifier,u):
         with db() as c:
             row=c.execute('SELECT * FROM teacher_materials WHERE id=%s AND user_id=%s',(identifier,u['id'])).fetchone()
@@ -15,7 +17,7 @@ def install(app):
         u=current_user(request)
         if not u: return RedirectResponse('/login',303)
         editing=owned(edit,u) if edit else None
-        return page(request,'assistant',user=u,page_title='Подготовка урока',editing=editing,form_error='',manual=bool(edit) or mode=='manual')
+        return page(request,'assistant',user=u,page_title='Подготовка урока',editing=editing,form_error='',manual=bool(edit) or mode=='manual',ai_mode=mode in ('ai','review'),ai_review=mode=='review',ai_enabled=enabled(u))
     @app.post('/teacher/prepare/build')
     def build(request:Request,csrf:str=Form(...),topic:str=Form(...),goal:str=Form(...),prior:str=Form('partial'),minutes:int=Form(45)):
         auth(request,csrf)
